@@ -1,0 +1,33 @@
+[api]
+enabled = true
+address = "0.0.0.0:8686"
+playground = true
+
+[sources.dummy_http_json]
+type = "http_client"
+endpoint = "https://dummyjson.com/products/1"
+method = "GET"
+decoding.codec = "json"
+scrape_interval_secs = 60
+
+[sinks.stdout]
+type = "console"
+inputs = ["dummy_http_json"]
+target = "stdout"
+
+[sinks.stdout.encoding]
+codec = "json"
+
+[transforms.add_ddsource_to_logs]
+inputs = [ "dummy_http_json"]
+type = "remap"
+source = '''
+  .ddsource = "dummyjson"
+'''
+
+[sinks.dummy_json_to_datadog_logs]
+type = "datadog_logs"
+inputs = ["add_ddsource_to_logs"]
+default_api_key = "${DD_API_KEY}"
+compression = "none"
+region = "us"
